@@ -15,6 +15,12 @@ namespace AvatarUploader
         internal static readonly ConcurrentQueue<string> SendingIds = new();
         private static System.Timers.Timer _writeTimer = null!;
         public static event Action? OnTick;
+
+        public List<string> avatarDbUploaderUrls = new List<string>
+        {
+            "https://api.zuxi.dev/api/v6/vrcx/upload-bulk"
+        };
+
         internal static async Task SendAvatars()
         {
             WriteProcessed();
@@ -69,31 +75,33 @@ namespace AvatarUploader
             // LogManager.Log(jsonContent);
 
             HttpContent content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-            string url = "https://api.zuxi.dev/api/v6/vrcx/upload-bulk";
-
-            try
+            foreach (var url in new CommonFuncs().avatarDbUploaderUrls)
             {
-                HttpResponseMessage response = await httpClient.PostAsync(url, content);
-
-                if (response.IsSuccessStatusCode)
+                try
                 {
-                    LogManager.Log($"{avatars.Count} avatars uploaded successfully.");
-                   foreach (var item in avatars)
+                    HttpResponseMessage response = await httpClient.PostAsync(url, content);
+
+                    if (response.IsSuccessStatusCode)
                     {
-                       foundAvatarIds.Add(item.id);
+                        LogManager.Log($"{avatars.Count} avatars uploaded successfully.");
+                        foreach (var item in avatars)
+                        {
+                            if (!foundAvatarIds.Contains(item.id))
+                                foundAvatarIds.Add(item.id);
+                        }
                     }
-                    // foundAvatarIds.AddRange(avatars.ConvertAll(a => a.id));
+                    else
+                    {
+                        LogManager.Log($"Error uploading avatars: {response.StatusCode}");
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    LogManager.Log($"Error uploading avatars: {response.StatusCode}");
+                    LogManager.Log($"Exception occurred: {ex.Message}");
                 }
             }
-            catch (Exception ex)
-            {
-                LogManager.Log($"Exception occurred: {ex.Message}");
-            }
+
+           
         }
 
         private static readonly object fileLock = new object();
