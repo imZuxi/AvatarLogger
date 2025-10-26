@@ -69,6 +69,7 @@ class Program
         LogManager.Log($"Total avatars found: {CommonFuncs.foundAvatarIds.Count}");
         // Split into batches of 500 and send them with a delay
         await CommonFuncs.SendAvatars();
+        await CommonFuncs.SendWorlds();
         LogManager.Log("Keeping Timers Active To Continue Reading VRChat Log Files.");
         do { } while (true);
     }
@@ -244,12 +245,30 @@ class Program
                       if (!CommonFuncs.foundAvatarIds.Contains(match.Value))   
                           CommonFuncs.SendingIds.Enqueue(match.Value);
                     }
+
+                    MatchCollection wmatches = Regex.Matches(logOutput, @"wrld_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
+
+                    foreach (Match match in wmatches)
+                    {
+                        //  if (!CommonFuncs.foundAvatarIds.Contains(match.Value))
+                        //  LogManager.Log($"Found avatar ID: {match.Value} : isNew ({!CommonFuncs.foundAvatarIds.Contains(match.Value)})");
+                        if (!CommonFuncs.foundWorldIds.Contains(match.Value))
+                            CommonFuncs.SendingWorldIds.Enqueue(match.Value);
+                    }
                 }
             }
             catch (IOException ex)
             {
                 LogManager.Log($"Error accessing file {logFile}: {ex.Message}");
             }
+
+            // we need to delete the log file since vrchat cannot clean it on startup since its locked by us
+            try
+            {
+               // File.Delete(logFile);
+            }
+            catch { }  // vrchat locks the main log file 
+
         }
     }
 

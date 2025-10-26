@@ -74,6 +74,7 @@ namespace AvatarUploader
                 {
                     LogManager.Log("VRChat has exited. Resetting...");
                     await CommonFuncs.SendAvatars();
+                    await CommonFuncs.SendWorlds();
                     WaitForVRChat(); // Recursive call to wait again
                 };
 
@@ -111,6 +112,16 @@ namespace AvatarUploader
             {
                 if (!CommonFuncs.foundAvatarIds.Contains(match.Value))
                     CommonFuncs.SendingIds.Enqueue(match.Value);
+            }
+
+            MatchCollection wmatches = Regex.Matches(line, @"wrld_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
+
+            foreach (Match match in wmatches)
+            {
+                //  if (!CommonFuncs.foundAvatarIds.Contains(match.Value))
+                //  LogManager.Log($"Found avatar ID: {match.Value} : isNew ({!CommonFuncs.foundAvatarIds.Contains(match.Value)})");
+                if (!CommonFuncs.foundWorldIds.Contains(match.Value))
+                    CommonFuncs.SendingWorldIds.Enqueue(match.Value);
             }
         }
 
