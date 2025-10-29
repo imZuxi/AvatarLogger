@@ -204,9 +204,8 @@ namespace AvatarUploader
         {
             lock (fileLock)
             {
-                // Console.WriteLine(SendingIds.Count);
-                ConfigFile a = new ConfigFile() { avatarIds = foundAvatarIds.ToHashSet(), sendCache = SendingIds.ToHashSet(), worldIds = foundWorldIds.ToHashSet(), worldsendCache = SendingWorldIds.ToHashSet() };
-                File.WriteAllText("data.json", JsonConvert.SerializeObject(a, formatting: Formatting.Indented));
+                 ConfigFile a = new ConfigFile() { avatarIds = foundAvatarIds.ToHashSet(), sendCache = SendingIds.ToHashSet(), worldIds = foundWorldIds.ToHashSet(), worldsendCache = SendingWorldIds.ToHashSet() };
+                 File.WriteAllText("data.json", JsonConvert.SerializeObject(a, formatting: Formatting.Indented));
             }
         }
 

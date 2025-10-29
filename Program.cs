@@ -31,7 +31,13 @@ class Program
             foreach (var avtrId in cf.sendCache)
             {
                  CommonFuncs.SendingIds.Enqueue(avtrId); 
-            } 
+            }
+            CommonFuncs.foundWorldIds = cf.worldIds;
+            foreach (var wrldId in cf.worldsendCache)
+            {
+                CommonFuncs.SendingWorldIds.Enqueue(wrldId);
+
+            }
         }
 
         AmplitudeProcesser.Read();
