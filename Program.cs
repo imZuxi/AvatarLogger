@@ -1,8 +1,6 @@
-﻿using System.Collections.Concurrent;
-using System.Security.Cryptography;
-using System.Text;
+﻿using Newtonsoft.Json;
+using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
-using Newtonsoft.Json;
 
 namespace AvatarUploader;
 
@@ -25,18 +23,33 @@ class Program
         if (File.Exists("data.json"))
         {
             string data = File.ReadAllText("data.json");
-            ConfigFile cf = JsonConvert.DeserializeObject<ConfigFile>(data);
-            // @note its done like this because of concurrentcy, we need to use ConcurrentBag<T> however we store everything in a HashSet<T> to prevent duplicates 
-            CommonFuncs.foundAvatarIds = cf.avatarIds;
-            foreach (var avtrId in cf.sendCache)
-            {
-                 CommonFuncs.SendingIds.Enqueue(avtrId); 
-            }
-            CommonFuncs.foundWorldIds = cf.worldIds;
-            foreach (var wrldId in cf.worldsendCache)
-            {
-                CommonFuncs.SendingWorldIds.Enqueue(wrldId);
 
+            if (!string.IsNullOrEmpty(data))
+            {
+                ConfigFile cf = JsonConvert.DeserializeObject<ConfigFile>(data);
+                // @note its done like this because of concurrentcy, we need to use ConcurrentBag<T> however we store everything in a HashSet<T> to prevent duplicates 
+
+                try
+                {
+
+                    CommonFuncs.foundAvatarIds = cf.avatarIds;
+                    foreach (var avtrId in cf.sendCache)
+                    {
+                        CommonFuncs.SendingIds.Enqueue(avtrId);
+                    }
+                    CommonFuncs.foundWorldIds = cf.worldIds;
+                    foreach (var wrldId in cf.worldsendCache)
+                    {
+                        CommonFuncs.SendingWorldIds.Enqueue(wrldId);
+
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogManager.Log($"Error loading data regenerating file... {ex.Message}");
+
+                    // @note no need to delete the file it will get overwritten next tick.
+                }
             }
         }
 
@@ -50,7 +63,7 @@ class Program
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "Low"
            , "VRChat", "VRChat"
         );
-        GetFilesInAvatarDataDirectory(VRChatbaseDirectory); // bundles are now endrypted so we switch to log files
+        GetFilesInAvatarDataDirectory(VRChatbaseDirectory); // bundles are now encrypted so we switch to log files
         ProcessLogFiles(VRChatbaseDirectory);
 
         #region Process Bundles @note bundles are encrypted now
@@ -73,6 +86,8 @@ class Program
         #endregion
 
         LogManager.Log($"Total avatars found: {CommonFuncs.foundAvatarIds.Count}");
+
+
         // Split into batches of 500 and send them with a delay
         await CommonFuncs.SendAvatars();
         await CommonFuncs.SendWorlds();
@@ -246,10 +261,10 @@ class Program
 
                     foreach (Match match in matches)
                     {
-                      //  if (!CommonFuncs.foundAvatarIds.Contains(match.Value))
-                      //  LogManager.Log($"Found avatar ID: {match.Value} : isNew ({!CommonFuncs.foundAvatarIds.Contains(match.Value)})");
-                      if (!CommonFuncs.foundAvatarIds.Contains(match.Value))   
-                          CommonFuncs.SendingIds.Enqueue(match.Value);
+                        //  if (!CommonFuncs.foundAvatarIds.Contains(match.Value))
+                        //  LogManager.Log($"Found avatar ID: {match.Value} : isNew ({!CommonFuncs.foundAvatarIds.Contains(match.Value)})");
+                        if (!CommonFuncs.foundAvatarIds.Contains(match.Value))
+                            CommonFuncs.SendingIds.Enqueue(match.Value);
                     }
 
                     MatchCollection wmatches = Regex.Matches(logOutput, @"wrld_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
@@ -271,7 +286,7 @@ class Program
             // we need to delete the log file since vrchat cannot clean it on startup since its locked by us
             try
             {
-               // File.Delete(logFile);
+                // File.Delete(logFile);
             }
             catch { }  // vrchat locks the main log file 
 
@@ -282,7 +297,7 @@ class Program
 
 }
 
-[Obsolete("cache is encrypted.")] 
+[Obsolete("cache is encrypted.")]
 public class VRCConfigFile
 {
     //@note this is obsolete now as the cache is encrypted, leaving it here in case it changes back

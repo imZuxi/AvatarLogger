@@ -234,13 +234,12 @@ namespace AvatarUploader
 
     public class ConfigFile
     {
-        public HashSet<string> avatarIds;
+        public HashSet<string> avatarIds = new();
 
-        public HashSet<string> sendCache;
+        public HashSet<string> sendCache = new();
 
-        public HashSet<string> worldIds;
+        public HashSet<string> worldIds = new();
 
-        public HashSet<string> worldsendCache;
-        //   public HashSet<string> sentAvatarIds;
+        public HashSet<string> worldsendCache = new();
     }
 }
